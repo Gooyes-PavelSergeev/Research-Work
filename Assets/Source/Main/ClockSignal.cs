@@ -10,7 +10,7 @@ namespace Research.Main
 {
     public class ClockSignal
     {
-        private const int BIT_SENT = 4;
+        public const int BIT_SENT = 4;
 
         private float _frequency;
         public float period;
@@ -65,6 +65,11 @@ namespace Research.Main
                 _ = _processor.OnClockTickInput(initValue);
                 await Task.Delay(5);
             }
+        }
+
+        public void ManualUpdate(int bitNum)
+        {
+            _processor.OnClockTick(true, bitNum);
         }
 
         public void Deactivate()

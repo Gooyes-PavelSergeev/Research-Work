@@ -12,6 +12,7 @@ namespace Research.Main
     {
         private InputCode _input;
         private ClockSignal _clock;
+        private ClockTrigger _manualTrigger;
         private Signal _lastRegistredSignal;
         [SerializeField] private Graph.Graph _graphInput;
         [SerializeField] private Graph.Graph _graphOutput;
@@ -28,6 +29,8 @@ namespace Research.Main
             _graphOutput.Setup(1 << bitDepth);
             _input = new InputCode(1, 1.5f, this, _graphInput);
             _clock = new ClockSignal(1.5f, this);
+            _manualTrigger = new ClockTrigger(_clock);
+            _input.ManualTrigger = _manualTrigger;
         }
 
         public async Task OnClockTickInput(bool clockValue)

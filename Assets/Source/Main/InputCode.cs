@@ -16,6 +16,7 @@ namespace Research.Main
         private float _period;
 
         private Processor _processor;
+        public ClockTrigger ManualTrigger { get; set; }
         private Graph.Graph _inputGraph;
 
         private List<int> _hardInput = new List<int>
@@ -91,7 +92,11 @@ namespace Research.Main
 
         private float GenerateHardValue()
         {
-            int index = Mathf.RoundToInt(Time.time * _frequency) % _hardInput.Count;
+            float relativeValue = Time.time * _frequency / _hardInput.Count;
+            Debug.Log(relativeValue);
+            int index = Mathf.RoundToInt(relativeValue) % _hardInput.Count;
+            //ProcessCurrentValue(relativeValue);
+            //int index = Mathf.RoundToInt(Time.time * _frequency) % _hardInput.Count;
             return _hardInput[index];
         }
 
@@ -103,6 +108,24 @@ namespace Research.Main
             float valueNormalized = valueAnalog / _magnitude;
             float value = valueNormalized * (VALUES_AVAILABLE - 1);
             return value;
+        }
+
+
+        private float _triggerTime;
+        private void ProcessCurrentValue(float value)
+        {
+            //if (Time.time - _triggerTime < ManualTrigger._clock.period / ManualTrigger._clock.BIT_SENT) return;
+            if (Time.time - _triggerTime < 0.1f) return;
+            float fractional = Mathf.Abs(value - Mathf.RoundToInt(value));
+            float fromCenter = 0.5f - fractional;
+            if (Mathf.Abs(fromCenter) < 0.3f) ManualTrigger.Trigger(2);
+            else if (fromCenter > 0.3f) ManualTrigger.Trigger(3);
+            else
+            {
+                ManualTrigger.Trigger(0);
+                ManualTrigger.Trigger(1);
+            }
+            _triggerTime = Time.time;
         }
     }
 
