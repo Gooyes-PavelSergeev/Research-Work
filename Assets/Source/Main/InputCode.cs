@@ -48,15 +48,15 @@ namespace Research.Main
             _period = 1 / frequency;
             _processor = processor;
             _inputGraph = graph;
-            //Coroutines.StartCoroutine(Update());
+            Coroutines.StartCoroutine(Update());
         }
 
         private IEnumerator Update()
         {
             while (true)
             {
-                float value = GenerateSinValue();
-                _inputGraph.PushValue(value);
+                Signal signal = GetSignal();
+                _inputGraph.PushValue(signal.intValue);
                 yield return null;
             }
         }
@@ -78,7 +78,6 @@ namespace Research.Main
             }
             int valueInt = Mathf.RoundToInt(value);
             Signal signal = new Signal(valueInt, _magnitude, BIT_DEPTH);
-            //_inputGraph.PushValue(valueInt);
             return signal;
         }
 
@@ -92,11 +91,9 @@ namespace Research.Main
 
         private float GenerateHardValue()
         {
-            float relativeValue = Time.time * _frequency / _hardInput.Count;
-            Debug.Log(relativeValue);
+            float relativeValue = Time.time * _frequency;
             int index = Mathf.RoundToInt(relativeValue) % _hardInput.Count;
-            //ProcessCurrentValue(relativeValue);
-            //int index = Mathf.RoundToInt(Time.time * _frequency) % _hardInput.Count;
+            //ProcessCurrentValue(relativeValue, index);
             return _hardInput[index];
         }
 
@@ -112,21 +109,24 @@ namespace Research.Main
 
 
         private float _triggerTime;
-        private void ProcessCurrentValue(float value)
+
+        // костыль
+        private void ProcessCurrentValue(float value, int index)
         {
-            //if (Time.time - _triggerTime < ManualTrigger._clock.period / ManualTrigger._clock.BIT_SENT) return;
+            Signal signal = new Signal(_hardInput[index], _magnitude, BIT_DEPTH);
             if (Time.time - _triggerTime < 0.1f) return;
-            float fractional = Mathf.Abs(value - Mathf.RoundToInt(value));
+            float fractional = Mathf.Abs(value - (int)value);
             float fromCenter = 0.5f - fractional;
-            if (Mathf.Abs(fromCenter) < 0.3f) ManualTrigger.Trigger(2);
-            else if (fromCenter > 0.3f) ManualTrigger.Trigger(3);
+            if (Mathf.Abs(fromCenter) < 0.1f) ManualTrigger.Trigger(2, signal);
+            else if (fromCenter > 0.25f) ManualTrigger.Trigger(3, signal);
             else
             {
-                ManualTrigger.Trigger(0);
-                ManualTrigger.Trigger(1);
+                ManualTrigger.Trigger(0, signal);
+                ManualTrigger.Trigger(1, signal);
             }
             _triggerTime = Time.time;
         }
+        // конец костыля
     }
 
     public enum SignalType

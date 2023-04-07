@@ -36,9 +36,7 @@ namespace Research.Main
         private IEnumerator Start()
         {
             yield return new WaitForSeconds(1f);
-            //Action action = async () => await UpdateAll(false);
-            //action.Invoke();
-            //for (int i = 0; i < BIT_SENT; i++)
+
             Action updateInput = async () => await UpdateInput(true);
             updateInput.Invoke();
             for (int i = 0; i < BIT_SENT; i++)
@@ -67,9 +65,9 @@ namespace Research.Main
             }
         }
 
-        public void ManualUpdate(int bitNum)
+        public void ManualUpdate(int bitNum, Signal signal)
         {
-            _processor.OnClockTick(true, bitNum);
+            _processor.OnClockTick(true, bitNum, signal);
         }
 
         public void Deactivate()

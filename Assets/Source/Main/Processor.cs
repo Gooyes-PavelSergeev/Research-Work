@@ -41,10 +41,10 @@ namespace Research.Main
             _graphInput.PushValue(signal.intValue);
         }
 
-        public void OnClockTick(bool clockValue, int bit)
+        public void OnClockTick(bool clockValue, int bit, Signal signal = null)
         {
             if (!clockValue) return;
-            Signal signal = _input.GetSignal();
+            if (signal == null) signal = _input.GetSignal();
 
             int[] changedBits = GetChangedBits(signal, _lastRegistredSignal);
             int bitsChanged = changedBits.Length;

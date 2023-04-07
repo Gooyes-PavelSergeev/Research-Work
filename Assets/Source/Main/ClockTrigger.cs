@@ -8,9 +8,9 @@ namespace Research.Main
             _clock = target;
         }
 
-        public void Trigger(int bit)
+        public void Trigger(int bit, Signal signal)
         {
-            _clock.ManualUpdate(bit);
+            _clock.ManualUpdate(bit, signal);
         }
     }
 }
