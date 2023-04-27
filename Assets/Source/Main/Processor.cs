@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Numerics;
 
 namespace Research.Main
 {
@@ -18,6 +19,7 @@ namespace Research.Main
         [SerializeField] private Graph.Graph _graphOutput;
         private Dictionary<int, float> _bitChangeMap;
         private int _lastChangedBit = 0;
+        public bool Active { get; private set; }
 
         private void Start()
         {
@@ -31,19 +33,37 @@ namespace Research.Main
             _clock = new ClockSignal(1.5f, this);
             _manualTrigger = new ClockTrigger(_clock);
             _input.ManualTrigger = _manualTrigger;
+            Active = true;
+        }
+
+        public void Stop()
+        {
+            Active = false;
+            _graphInput.Active = false;
+            _graphOutput.Active = false;
+            _clock.SetActive(false);
+            Time.timeScale = 0f;
+        }
+        public void Continue()
+        {
+            Active = true;
+            _graphInput.Active = true;
+            _graphOutput.Active = true;
+            _clock.SetActive(true);
+            Time.timeScale = 1f;
         }
 
         public async Task OnClockTickInput(bool clockValue)
         {
             await Task.Delay(0);
-            if (!clockValue) return;
+            if (!clockValue || !Active) return;
             Signal signal = _input.GetSignal();
             _graphInput.PushValue(signal.intValue);
         }
 
         public void OnClockTick(bool clockValue, int bit, Signal signal = null)
         {
-            if (!clockValue) return;
+            if (!clockValue || !Active) return;
             if (signal == null) signal = _input.GetSignal();
 
             int[] changedBits = GetChangedBits(signal, _lastRegistredSignal);
@@ -105,7 +125,7 @@ namespace Research.Main
 
         private void OnApplicationQuit()
         {
-            _clock.Deactivate();
+            _clock.SetActive(false);
         }
 
         private bool CheckContainsHigherBits(int[] bits, int targetBit)
@@ -124,6 +144,22 @@ namespace Research.Main
                 if (bits[i] < targetBit) return true;
             }
             return false;
+        }
+
+        public float[] CreateSpectrum(int[] input)
+        {
+            Complex[] complexes = new Complex[input.Length];
+            for (int i = 0; i < input.Length; i++)
+            {
+                complexes[i] = new Complex(input[i], 0);
+            }
+            FourierTransform.DFT(complexes);
+            float[] result = new float[complexes.Length];
+            for (int i = 0; i < complexes.Length; i++)
+            {
+                result[i] = (float)complexes[i].Magnitude;
+            }
+            return result;
         }
     }
 }

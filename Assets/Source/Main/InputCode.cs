@@ -93,7 +93,7 @@ namespace Research.Main
         {
             float relativeValue = Time.time * _frequency;
             int index = Mathf.RoundToInt(relativeValue) % _hardInput.Count;
-            //ProcessCurrentValue(relativeValue, index);
+            ProcessCurrentValue(relativeValue, index);
             return _hardInput[index];
         }
 

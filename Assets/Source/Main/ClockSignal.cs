@@ -22,6 +22,15 @@ namespace Research.Main
 
         private bool _active;
 
+        public void SetActive(bool active)
+        {
+            _active = active;
+            if (active)
+            {
+                //Coroutines.StartCoroutine(Start(0));
+            }
+        }
+
         public ClockSignal(float frequency, Processor processor)
         {
             _active = true;
@@ -30,12 +39,12 @@ namespace Research.Main
             _delayMs = Mathf.RoundToInt(period * 1000) * 3 / 10;
             _processor = processor;
             _bitDelay = period / BIT_SENT * 2;
-            Coroutines.StartCoroutine(Start());
+            //Coroutines.StartCoroutine(Start(1f));
         }
 
-        private IEnumerator Start()
+        private IEnumerator Start(float delay)
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(delay);
 
             Action updateInput = async () => await UpdateInput(true);
             updateInput.Invoke();
@@ -68,11 +77,6 @@ namespace Research.Main
         public void ManualUpdate(int bitNum, Signal signal)
         {
             _processor.OnClockTick(true, bitNum, signal);
-        }
-
-        public void Deactivate()
-        {
-            _active = false;
         }
     }
 }

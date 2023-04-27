@@ -9,6 +9,7 @@ namespace Research.Graph
         private Vector2 _borders;
         private float _length;
         private bool _xAxis;
+        public bool IsFlasePoint { get { return !_xAxis; } }
         public void Initialize(Vector2 borders, Graph graph, bool xAxis = true)
         {
             _borders = borders;
@@ -26,6 +27,7 @@ namespace Research.Graph
                 {
                     _graph.RemovePoint(this);
                     Destroy(gameObject);
+                    return;
                 }
                 Vector2 position = transform.position;
                 position.x += _length;
