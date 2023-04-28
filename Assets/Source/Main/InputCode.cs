@@ -56,7 +56,7 @@ namespace Research.Main
             while (true)
             {
                 Signal signal = GetSignal();
-                _inputGraph.PushValue(signal.intValue);
+                _inputGraph.PushValue(signal);
                 yield return null;
             }
         }

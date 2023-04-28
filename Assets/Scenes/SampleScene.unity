@@ -770,7 +770,7 @@ MonoBehaviour:
   _isInput: 1
   _pointPrefab: {fileID: 5531796578402794430, guid: 9eeac21d38de59044adde307d3c94b79, type: 3}
   _resolution: 300
-  _spectrumResolutionMultiplier: 5
+  _spectrumResolutionMultiplier: 1
   _spectrumMaxValue: 3
   _graphLength: 20
   _yAxisSize: 3.5
@@ -1235,7 +1235,7 @@ MonoBehaviour:
   _isInput: 0
   _pointPrefab: {fileID: 5531796578402794430, guid: 22b25c155c889534f88b5f2147d6b9cf, type: 3}
   _resolution: 300
-  _spectrumResolutionMultiplier: 5
+  _spectrumResolutionMultiplier: 1
   _spectrumMaxValue: 3
   _graphLength: 20
   _yAxisSize: 3.5

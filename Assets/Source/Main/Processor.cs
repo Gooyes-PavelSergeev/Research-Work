@@ -9,7 +9,7 @@ using System.Numerics;
 
 namespace Research.Main
 {
-    public class Processor : MonoBehaviour
+    public class Processor : Singleton<Processor>
     {
         private InputCode _input;
         private ClockSignal _clock;
@@ -19,20 +19,28 @@ namespace Research.Main
         [SerializeField] private Graph.Graph _graphOutput;
         private Dictionary<int, float> _bitChangeMap;
         private int _lastChangedBit = 0;
+        public Dictionary<float, Signal> _history;
+        public Dictionary<float, Signal> _inputHistory;
         public bool Active { get; private set; }
 
         private void Start()
         {
             int bitDepth = 4;
             _bitChangeMap = new Dictionary<int, float>();
+            _history = new Dictionary<float, Signal>();
+            _inputHistory = new Dictionary<float, Signal>();
+
             for (int i = 0; i < bitDepth; i++) _bitChangeMap[i] = Time.time;
             _lastRegistredSignal = new Signal(0, 1f, bitDepth);
+
             _graphInput.Setup(1 << bitDepth);
             _graphOutput.Setup(1 << bitDepth);
+
             _input = new InputCode(1, 1.5f, this, _graphInput);
             _clock = new ClockSignal(1.5f, this);
             _manualTrigger = new ClockTrigger(_clock);
             _input.ManualTrigger = _manualTrigger;
+
             Active = true;
         }
 
@@ -55,21 +63,28 @@ namespace Research.Main
 
         public async Task OnClockTickInput(bool clockValue)
         {
+            Debug.Log("Here");
             await Task.Delay(0);
             if (!clockValue || !Active) return;
             Signal signal = _input.GetSignal();
-            _graphInput.PushValue(signal.intValue);
+            _graphInput.PushValue(signal);
         }
 
         public void OnClockTick(bool clockValue, int bit, Signal signal = null)
         {
             if (!clockValue || !Active) return;
             if (signal == null) signal = _input.GetSignal();
+            _inputHistory[signal.registredTime] = signal;
 
             int[] changedBits = GetChangedBits(signal, _lastRegistredSignal);
             int bitsChanged = changedBits.Length;
 
-            if (bitsChanged == 0) return;
+            if (bitsChanged == 0)
+            {
+                _history[signal.registredTime] = signal;
+                _graphOutput.PushValue(signal);
+                return;
+            }
             int bitToProcess = signal.bitDepth - 1 - bit;
             int buffer = bitToProcess;
             if (signal.intValue < _lastRegistredSignal.intValue)
@@ -84,7 +99,11 @@ namespace Research.Main
                 //if (CheckContainsLowerBits(changedBits, bitToProcess))
                 //return;
             }
-            if (Mathf.Abs(bitToProcess - buffer) > 1) return;
+            if (Mathf.Abs(bitToProcess - buffer) > 1)
+            {
+                _history[Time.time] = _lastRegistredSignal;
+                return;
+            }
 
             _lastChangedBit = bitToProcess;
 
@@ -97,8 +116,9 @@ namespace Research.Main
 
             Signal changedSignal = new Signal(signal, binaryValueLast.ToInt());
 
+            _history[changedSignal.registredTime] = changedSignal;
             _lastRegistredSignal = changedSignal;
-            _graphOutput.PushValue(changedSignal.intValue);
+            _graphOutput.PushValue(changedSignal);
         }
 
         private int[] GetChangedBits(Signal current, Signal previous)
@@ -146,20 +166,38 @@ namespace Research.Main
             return false;
         }
 
-        public float[] CreateSpectrum(int[] input)
+        public Complex[] CreateSpectrum(float from, float to, bool output)
         {
-            Complex[] complexes = new Complex[input.Length];
-            for (int i = 0; i < input.Length; i++)
+            List<Signal> values = new List<Signal>();
+            if (output)
             {
-                complexes[i] = new Complex(input[i], 0);
+                foreach (float registerTime in _history.Keys)
+                {
+                    if (registerTime >= from && registerTime <= to)
+                    {
+                        values.Add(_history[registerTime]);
+                    }
+                }
+            }
+            else
+            {
+                foreach (float registerTime in _inputHistory.Keys)
+                {
+                    if (registerTime >= from && registerTime <= to)
+                    {
+                        values.Add(_inputHistory[registerTime]);
+                    }
+                }
+            }
+            Debug.Log($"Making spectrum from {from} to {to} with {values.Count} values");
+            Complex[] complexes = new Complex[values.Count];
+            for (int i = 0; i < values.Count; i++)
+            {
+                complexes[i] = new Complex(values[i].intValue, 0);
             }
             FourierTransform.DFT(complexes);
-            float[] result = new float[complexes.Length];
-            for (int i = 0; i < complexes.Length; i++)
-            {
-                result[i] = (float)complexes[i].Magnitude;
-            }
-            return result;
+            if (complexes.Length == 0) Debug.LogWarning("No spectrum");
+            return complexes;
         }
     }
 }

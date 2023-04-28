@@ -1,3 +1,4 @@
+using Research.Main;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace Research.Graph
 {
     public class Graph : MonoBehaviour
     {
-        [SerializeField] private bool _isInput;
+        public bool _isInput;
         [SerializeField] private GraphPoint _pointPrefab;
 
         [SerializeField] private int _resolution = 10;
@@ -26,10 +27,11 @@ namespace Research.Graph
         private float _maxInputValue;
 
         [SerializeField] private float _speed = 3;
-        internal Dictionary<GraphPoint, int> history;
+        internal Dictionary<GraphPoint, Signal> history;
         public bool Active { get; set; }
 
         public float CurrentValue { get; private set; }
+        private Signal _currentSignal;
         private int currentValueInt;
         private bool _showingRange;
         private float _mostRight;
@@ -41,7 +43,7 @@ namespace Research.Graph
             _borders = new Vector2(-_graphLength / 2, _graphLength / 2);
             _points = new List<GraphPoint>();
             _instantRange = new List<GraphPoint>();
-            history = new Dictionary<GraphPoint, int>();
+            history = new Dictionary<GraphPoint, Signal>();
             float step = (float)_graphLength / (float)_resolution;
             Vector3 position = Vector3.zero;
             Vector3 scale = Vector3.one * step;
@@ -56,10 +58,11 @@ namespace Research.Graph
                 point.transform.localScale = scale;
                 point.transform.SetParent(transform, false);
                 point.Move(Vector2.zero);
-                history[point] = -1;
+                history[point] = null;
+                point.signal = null;
             }
             _mostRight = _points[_points.Count - 1].transform.position.x;
-            StartCoroutine(UpdateHistory());
+            //StartCoroutine(UpdateHistory());
         }
 
         private void Update()
@@ -74,32 +77,52 @@ namespace Research.Graph
 
         private IEnumerator UpdateHistory()
         {
+            while (_currentSignal == null) yield return null;
+            yield return new WaitForSeconds(1);
             while (true)
             {
-                GraphPoint targetPoint = null;
-                float minDist = 100;
-                foreach (GraphPoint point in history.Keys)
+                if (Active)
                 {
-                    float dist = Mathf.Abs(point.transform.position.x - _mostRight);
-                    if (dist < minDist)
+                    GraphPoint targetPoint = null;
+                    float minDist = 100;
+                    foreach (GraphPoint point in history.Keys)
                     {
-                        minDist = dist;
-                        targetPoint = point;
+                        float dist = Mathf.Abs(point.transform.position.x - _mostRight);
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            targetPoint = point;
+                        }
                     }
+                    history[targetPoint] = _isInput ? Processor.Instance._inputHistory.Last().Value : Processor.Instance._history.Last().Value;
+                    //if (!_isInput) Debug.Log($"Point {targetPoint.gameObject.name} now has value {currentValueInt}");
                 }
-                history[targetPoint] = currentValueInt;
-                //if (!_isInput) Debug.Log($"Point {targetPoint.gameObject.name} now has value {currentValueInt}");
                 yield return null;
             }
         }
 
-        public void PushValue(int value)
+        public void PushValue(Signal signal)
         {
             if (!Active) return;
             if (_showingRange) HideRange();
+            _currentSignal = signal;
+            int value = signal.intValue;
             currentValueInt = value;
             float relativeValue = value / _maxInputValue;
             relativeValue *= _yAxisSize;
+            GraphPoint targetPoint = history.Last().Key;
+            float max = 0;
+            foreach (GraphPoint point in history.Keys)
+            {
+                float time = point.registerTime;
+                if (time > max)
+                {
+                    max = time;
+                    targetPoint = point;
+                }
+            }
+            history[targetPoint] = signal;
+            targetPoint.signal = signal;
             if (CurrentValue != relativeValue)
             {
                 float step = (float)_graphLength / (float)_resolution * (relativeValue > CurrentValue ? -1 : 1);
@@ -136,7 +159,7 @@ namespace Research.Graph
             }
         }
 
-        public int[] GetValuesInRange(Vector3 from, Vector3 to)
+        public Signal[] GetSignalsInRange(Vector3 from, Vector3 to)
         {
             float fromPos = 0;
             float toPos = 0;
@@ -158,12 +181,12 @@ namespace Research.Graph
                     toPos = pointPos;
                 }
             }
-            List<int> values = new List<int>();
+            List<Signal> values = new List<Signal>();
             if (fromPos >= toPos) throw new System.Exception("Wrong points found");
             foreach (GraphPoint point in history.Keys)
             {
                 float pointPos = point.transform.position.x;
-                if (pointPos > fromPos && pointPos < toPos && history[point] != -1)
+                if (pointPos > fromPos && pointPos < toPos && point.signal != null)
                 {
                     values.Add(history[point]);
                 }
@@ -171,8 +194,10 @@ namespace Research.Graph
             return values.ToArray();
         }
 
-        public void DisplayRange(float[] values)
+        public void DisplayRange(System.Numerics.Complex[] complexValues)
         {
+            float[] values = new float[complexValues.Length];
+            for (int i = 0; i < complexValues.Length; i++) values[i] = (float)complexValues[i].Magnitude;
             int originalResolution = _resolution;
             _resolution *= _spectrumResolutionMultiplier;
             _showingRange = true;
@@ -206,7 +231,8 @@ namespace Research.Graph
 
         private float[] Interpolate(float[] values, int targetLength)
         {
-            int initLength = values.Length;
+            /*int initLength = values.Length;
+            if (initLength == 0) Debug.LogWarning("No input to interpolate");
             float[] result = new float[targetLength];
             if (initLength != targetLength)
             {
@@ -220,7 +246,20 @@ namespace Research.Graph
                 }
                 return result;
             }
-            else return values;
+            else return values;*/
+
+            int m = values.Length; //source length
+            float[] destination = new float[targetLength];
+            destination[0] = values[0];
+            destination[targetLength - 1] = values[m - 1];
+
+            for (int i = 1; i < targetLength - 1; i++)
+            {
+                float jd = (i * (float)(m - 1) / targetLength - 1);
+                int j = (int)jd;
+                destination[i] = values[j] + (values[j + 1] - values[j]) * (jd - j);
+            }
+            return destination;
         }
 
         private static void Interpolate(float[] destination, int destFrom, int destTo, float valueFrom, float valueTo)

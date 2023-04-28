@@ -146,8 +146,16 @@ namespace Research.UI {
 
         private void CreateSpectrum(Area area)
         {
-            int[] values = area.graph.GetValuesInRange(area.first, area.second);
-            float[] spectrum = _processor.CreateSpectrum(values);
+            Signal[] signals = area.graph.GetSignalsInRange(area.first, area.second);
+            float from = 100;
+            float to = 0;
+            for (int i = 0; i < signals.Length; i++)
+            {
+                float time = signals[i].registredTime;
+                if (time < from) from = time;
+                else if (time > to) to = time;
+            }
+            System.Numerics.Complex[] spectrum = _processor.CreateSpectrum(from, to, !area.graph._isInput);
             area.graph.DisplayRange(spectrum);
             area.firstIsSet = false;
             area.secondIsSet = false;
