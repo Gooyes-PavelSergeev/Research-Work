@@ -15,6 +15,8 @@ namespace Research.Graph
         [SerializeField] private int _resolution = 10;
         [SerializeField] private int _spectrumResolutionMultiplier = 5;
         [SerializeField] private float _spectrumMaxValue = 4;
+        [SerializeField] private bool _interpolateByFactor;
+        [SerializeField] private float _interpolateFactor = 5;
 
         private Vector2 _borders;
 
@@ -197,7 +199,7 @@ namespace Research.Graph
         public void DisplayRange(System.Numerics.Complex[] complexValues)
         {
             float[] values = new float[complexValues.Length];
-            for (int i = 0; i < complexValues.Length; i++) values[i] = (float)complexValues[i].Magnitude;
+            for (int i = 0; i < complexValues.Length; i++) values[i] = (float)System.Numerics.Complex.Abs(complexValues[i]);
             int originalResolution = _resolution;
             _resolution *= _spectrumResolutionMultiplier;
             _showingRange = true;
@@ -210,11 +212,16 @@ namespace Research.Graph
             Vector3 scale = Vector3.one * (_graphLength / (float)originalResolution);
 
             float maxValue = Mathf.Max(values);
-            for (int i = 0; i < values.Length; i++) values[i] = values[i] / maxValue * _spectrumMaxValue;
+            //for (int i = 0; i < values.Length; i++) values[i] = values[i] / maxValue * _spectrumMaxValue;
+            for (int i = 0; i < values.Length; i++) values[i] = values[i] * _spectrumMaxValue;
 
-            float[] correctedRange = Interpolate(values, _resolution);
+            //float[] correctedRange = Interpolate(values, _resolution);
+            float[] correctedRange = null;
+            if (_interpolateByFactor) correctedRange = Interpolate(values, (int)(values.Length * _interpolateFactor));
+            else correctedRange = Interpolate(values, _resolution);
 
-            for (int i = 0; i < _resolution; i++)
+            //for (int i = 0; i < _resolution; i++)
+            for (int i = 0; i < correctedRange.Length; i++)
             {
                 GraphPoint point = Instantiate(_pointPrefab);
                 point.Initialize(_borders, this);
@@ -231,24 +238,7 @@ namespace Research.Graph
 
         private float[] Interpolate(float[] values, int targetLength)
         {
-            /*int initLength = values.Length;
-            if (initLength == 0) Debug.LogWarning("No input to interpolate");
-            float[] result = new float[targetLength];
-            if (initLength != targetLength)
-            {
-                result[0] = values[0];
-                int jPrevious = 0;
-                for (int i = 1; i < values.Length; i++)
-                {
-                    int j = i * (result.Length - 1) / (values.Length - 1);
-                    Interpolate(result, jPrevious, j, values[i - 1], values[i]);
-                    jPrevious = j;
-                }
-                return result;
-            }
-            else return values;*/
-
-            int m = values.Length; //source length
+            int m = values.Length;
             float[] destination = new float[targetLength];
             destination[0] = values[0];
             destination[targetLength - 1] = values[m - 1];
@@ -260,14 +250,6 @@ namespace Research.Graph
                 destination[i] = values[j] + (values[j + 1] - values[j]) * (jd - j);
             }
             return destination;
-        }
-
-        private static void Interpolate(float[] destination, int destFrom, int destTo, float valueFrom, float valueTo)
-        {
-            int destLength = destTo - destFrom;
-            float valueLength = valueTo - valueFrom;
-            for (int i = 0; i <= destLength; i++)
-                destination[destFrom + i] = valueFrom + (valueLength * i) / destLength;
         }
 
         public void HideRange()

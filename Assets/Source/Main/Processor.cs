@@ -87,18 +87,8 @@ namespace Research.Main
             }
             int bitToProcess = signal.bitDepth - 1 - bit;
             int buffer = bitToProcess;
-            if (signal.intValue < _lastRegistredSignal.intValue)
-            {
-                bitToProcess = changedBits[^1];
-                //if (CheckContainsHigherBits(changedBits, bitToProcess))
-                //return;
-            }
-            else
-            {
-                bitToProcess = changedBits[0];
-                //if (CheckContainsLowerBits(changedBits, bitToProcess))
-                //return;
-            }
+            if (signal.intValue < _lastRegistredSignal.intValue) bitToProcess = changedBits[^1];
+            else bitToProcess = changedBits[0];
             if (Mathf.Abs(bitToProcess - buffer) > 1)
             {
                 _history[Time.time] = _lastRegistredSignal;
@@ -190,14 +180,19 @@ namespace Research.Main
                 }
             }
             Debug.Log($"Making spectrum from {from} to {to} with {values.Count} values");
-            Complex[] complexes = new Complex[values.Count];
-            for (int i = 0; i < values.Count; i++)
+            int n = (int)Math.Pow(2, (int)Math.Log(values.Count, 2));
+            Complex[] complexes = new Complex[n];
+            for (int i = 0; i < n; i++)
             {
-                complexes[i] = new Complex(values[i].intValue, 0);
+                double phi = values[i].registredTime * 2 * Math.PI;
+                complexes[i] = new Complex(values[i].intValue * Math.Cos(phi), -values[i].intValue * Math.Sin(phi));
             }
-            FourierTransform.DFT(complexes);
+            FourierTransform.FFT(complexes);
+            FourierTransform.NFFT(complexes);
             if (complexes.Length == 0) Debug.LogWarning("No spectrum");
             return complexes;
         }
+
+
     }
 }

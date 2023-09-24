@@ -771,8 +771,10 @@ MonoBehaviour:
   _pointPrefab: {fileID: 5531796578402794430, guid: 9eeac21d38de59044adde307d3c94b79, type: 3}
   _resolution: 300
   _spectrumResolutionMultiplier: 1
-  _spectrumMaxValue: 3
-  _graphLength: 20
+  _spectrumMaxValue: 0.2
+  _interpolateByFactor: 1
+  _interpolateFactor: 9
+  _graphLength: 17
   _yAxisSize: 3.5
   _speed: 3
 --- !u!4 &1322350270
@@ -1236,8 +1238,10 @@ MonoBehaviour:
   _pointPrefab: {fileID: 5531796578402794430, guid: 22b25c155c889534f88b5f2147d6b9cf, type: 3}
   _resolution: 300
   _spectrumResolutionMultiplier: 1
-  _spectrumMaxValue: 3
-  _graphLength: 20
+  _spectrumMaxValue: 0.2
+  _interpolateByFactor: 1
+  _interpolateFactor: 9
+  _graphLength: 17
   _yAxisSize: 3.5
   _speed: 3
 --- !u!4 &2008111116
