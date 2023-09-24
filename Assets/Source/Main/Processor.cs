@@ -187,8 +187,8 @@ namespace Research.Main
                 double phi = values[i].registredTime * 2 * Math.PI;
                 complexes[i] = new Complex(values[i].intValue * Math.Cos(phi), -values[i].intValue * Math.Sin(phi));
             }
-            FourierTransform.FFT(complexes);
-            FourierTransform.NFFT(complexes);
+            complexes = FourierTransform.FFT(complexes);
+            complexes = FourierTransform.NFFT(complexes);
             if (complexes.Length == 0) Debug.LogWarning("No spectrum");
             return complexes;
         }
