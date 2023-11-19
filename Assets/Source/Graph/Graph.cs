@@ -1,11 +1,10 @@
-using Research.Main;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-namespace Research.Graph
+namespace Research
 {
     public class Graph : MonoBehaviour
     {
@@ -33,10 +32,10 @@ namespace Research.Graph
         public bool Active { get; set; }
 
         public float CurrentValue { get; private set; }
-        private Signal _currentSignal;
-        private int currentValueInt;
         private bool _showingRange;
         private float _mostRight;
+
+        public Func<float> constantInput;
 
         private void Awake()
         {
@@ -61,13 +60,13 @@ namespace Research.Graph
                 point.transform.SetParent(transform, false);
                 point.Move(Vector2.zero);
                 history[point] = null;
-                point.signal = null;
+                //point.signal = null;
             }
             _mostRight = _points[_points.Count - 1].transform.position.x;
             //StartCoroutine(UpdateHistory());
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (!Active || _showingRange) return;
             for (int i = 0; i < _points.Count; i++)
@@ -75,11 +74,14 @@ namespace Research.Graph
                 GraphPoint point = _points[i];
                 point.Move(_speed * Time.deltaTime * Vector2.left);
             }
+            if (constantInput != null)
+            {
+                PushValue(constantInput.Invoke());
+            }
         }
 
         private IEnumerator UpdateHistory()
         {
-            while (_currentSignal == null) yield return null;
             yield return new WaitForSeconds(1);
             while (true)
             {
@@ -96,20 +98,17 @@ namespace Research.Graph
                             targetPoint = point;
                         }
                     }
-                    history[targetPoint] = _isInput ? Processor.Instance._inputHistory.Last().Value : Processor.Instance._history.Last().Value;
+                    //history[targetPoint] = _isInput ? DAC.Instance._inputHistory.Last().Value : DAC.Instance._history.Last().Value;
                     //if (!_isInput) Debug.Log($"Point {targetPoint.gameObject.name} now has value {currentValueInt}");
                 }
                 yield return null;
             }
         }
 
-        public void PushValue(Signal signal)
+        public void PushValue(float value)
         {
             if (!Active) return;
             if (_showingRange) HideRange();
-            _currentSignal = signal;
-            int value = signal.intValue;
-            currentValueInt = value;
             float relativeValue = value / _maxInputValue;
             relativeValue *= _yAxisSize;
             GraphPoint targetPoint = history.Last().Key;
@@ -123,8 +122,7 @@ namespace Research.Graph
                     targetPoint = point;
                 }
             }
-            history[targetPoint] = signal;
-            targetPoint.signal = signal;
+            //history[targetPoint] = value;
             if (CurrentValue != relativeValue)
             {
                 float step = (float)_graphLength / (float)_resolution * (relativeValue > CurrentValue ? -1 : 1);
@@ -146,6 +144,26 @@ namespace Research.Graph
                 }
             }
             CurrentValue = relativeValue;
+        }
+        class CharComparer : IComparer<char>
+        {
+            public int Compare(char x, char y)
+            {
+                if (Char.IsLower(x) && !Char.IsLower(y))
+                    return -1;
+                if (!Char.IsLower(x) && Char.IsLower(y))
+                    return 1;
+
+                if (Char.IsLower(x) && Char.IsLower(y))
+                    return x.CompareTo(y);
+
+                if (!Char.IsLetterOrDigit(x))
+                    return 1;
+                if (!Char.IsLetterOrDigit(y))
+                    return -1;
+
+                return x.CompareTo(y);
+            }
         }
 
         public void Setup(float maxInputValue)
@@ -188,9 +206,9 @@ namespace Research.Graph
             foreach (GraphPoint point in history.Keys)
             {
                 float pointPos = point.transform.position.x;
-                if (pointPos > fromPos && pointPos < toPos && point.signal != null)
+                if (pointPos > fromPos && pointPos < toPos)
                 {
-                    values.Add(history[point]);
+                    //values.Add(history[point]);
                 }
             }
             return values.ToArray();

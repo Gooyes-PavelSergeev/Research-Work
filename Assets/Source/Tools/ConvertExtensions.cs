@@ -60,4 +60,19 @@ public static class ConvertExtensions
         }
         return valueArray;
     }
+
+    public static bool HasChangedBits(this bool[] value, bool[] newValue)
+    {
+        for (int i = 0; i < value.Length ; i++)
+        {
+            if (value[i] != newValue[i]) return true;
+        }
+        return false;
+    }
+
+    public static int ToInt(this bool value)
+    {
+        if (value) return 1;
+        return 0;
+    }
 }

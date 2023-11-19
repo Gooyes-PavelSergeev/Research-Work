@@ -2,7 +2,7 @@
 using System.Numerics;
 using UnityEditor;
 
-namespace Research.Main
+namespace Research
 {
     public static class FourierTransform
     {

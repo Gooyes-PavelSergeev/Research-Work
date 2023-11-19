@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Research.Main
+namespace Research
 {
     public class Signal
     {

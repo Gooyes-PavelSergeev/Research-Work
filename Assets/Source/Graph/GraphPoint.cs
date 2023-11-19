@@ -1,8 +1,8 @@
-﻿using Research.Main;
+﻿using Research;
 using System;
 using UnityEngine;
 
-namespace Research.Graph
+namespace Research
 {
     internal class GraphPoint : MonoBehaviour
     {
@@ -10,7 +10,6 @@ namespace Research.Graph
         private Vector2 _borders;
         private float _length;
         private bool _xAxis;
-        public Signal signal;
         public float registerTime;
         public bool IsFlasePoint { get { return !_xAxis; } }
         public void Initialize(Vector2 borders, Graph graph, bool xAxis = true)
@@ -37,7 +36,6 @@ namespace Research.Graph
                 position.x += _length;
                 position.y = _graph.CurrentValue + _graph.transform.position.y;
                 transform.position = position;
-                signal = null;
                 registerTime = Time.time;
             }
         }

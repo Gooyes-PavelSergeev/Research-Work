@@ -1,7 +1,3 @@
-using Research.Graph;
-using Research.Main;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,40 +14,40 @@ namespace Research.UI {
         [SerializeField] private Button _confirmAreaButton;
 
         [Header("Graphs")]
-        [SerializeField] private Graph.Graph _inputGraph;
-        [SerializeField] private Graph.Graph _outGraph;
+        [SerializeField] private Graph _inputGraph;
+        [SerializeField] private Graph _outGraph;
 
         [Header("Areas")]
         [SerializeField] private Image _inputAreaImage;
         [SerializeField] private Image _outputAreaImage;
 
-        private Processor _processor;
+        private DAC _dac;
 
         private bool _listeningToAreaClicks;
         private Area _inputArea;
         private Area _outputArea;
 
-        private bool _isRunning
+        /*private bool _isRunning
         {
-            get => _processor.Active;
+            get => _dac.Active;
 
             set
             {
                 _chooseAreaButton.gameObject.SetActive(!value);
                 if (value)
                 {
-                    _processor.Continue();
+                    _dac.Continue();
                 }
                 else
                 {
-                    _processor.Stop();
+                    _dac.Stop();
                 }
             }
-        }
+        }*/
 
         private void Start()
         {
-            _processor = FindObjectOfType<Processor>();
+            _dac = MainController.Instance.dac;
 
             _stopButtonText = _stopButton.GetComponentInChildren<TextMeshProUGUI>();
             _chooseAreaButtonText = _chooseAreaButton.GetComponentInChildren<TextMeshProUGUI>();
@@ -73,8 +69,8 @@ namespace Research.UI {
 
         private void OnStopButtonClick()
         {
-            _isRunning = !_isRunning;
-            _stopButtonText.text = _isRunning ? "Stop" : "Continue";
+            //_isRunning = !_isRunning;
+            //_stopButtonText.text = _isRunning ? "Stop" : "Continue";
         }
 
         private void OnChooseAreaButtonClick()
@@ -155,7 +151,7 @@ namespace Research.UI {
                 if (time < from) from = time;
                 else if (time > to) to = time;
             }
-            System.Numerics.Complex[] spectrum = _processor.CreateSpectrum(from, to, !area.graph._isInput);
+            System.Numerics.Complex[] spectrum = _dac.CreateSpectrum(from, to, !area.graph._isInput);
             area.graph.DisplayRange(spectrum);
             area.firstIsSet = false;
             area.secondIsSet = false;
@@ -172,9 +168,9 @@ namespace Research.UI {
             public Vector3 secondPxPosition;
             public bool secondIsSet;
 
-            public Graph.Graph graph;
+            public Graph graph;
 
-            public Area(Graph.Graph graph)
+            public Area(Graph graph)
             {
                 this.graph = graph;
                 first = Vector3.zero;
