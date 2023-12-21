@@ -34,11 +34,10 @@ namespace Research
             0b0011,
             0b0111,
             0b1111,
-            0b1111,
-            0b1111,
+
             0b1111,
             0b0111,
-            0b0011,
+            //0b0011,
             0b0011,
             0b0000,
             0b0000,
@@ -110,7 +109,7 @@ namespace Research
                 Time.time - kvp.Value < _clock.peroidMs / 2000f &&
                 Time.time - kvp.Value != 0);
             if (msBits.Count() == 0) notEnoughTime = false;
-            //if (notEnoughTime) return;
+            if (notEnoughTime) return;
             bool oldValue = _currentInputValue[bitNum];
             _currentInputValue[bitNum] = inputValue[bitNum];
             _changeTimeMap[bitNum] = Time.time;
@@ -132,30 +131,16 @@ namespace Research
             _currentOutputNonSmoothed = analogOutput;
         }
 
-        public Complex[] CreateSpectrum(float from, float to, bool output)
+        public Complex[] CreateSpectrum(float from, float to)
         {
             /*List<Signal> values = new List<Signal>();
-            if (output)
+            foreach (float registerTime in _history.Keys)
             {
-                foreach (float registerTime in _history.Keys)
+                if (registerTime >= from && registerTime <= to)
                 {
-                    if (registerTime >= from && registerTime <= to)
-                    {
-                        values.Add(_history[registerTime]);
-                    }
+                    values.Add(_history[registerTime]);
                 }
             }
-            else
-            {
-                foreach (float registerTime in _inputHistory.Keys)
-                {
-                    if (registerTime >= from && registerTime <= to)
-                    {
-                        values.Add(_inputHistory[registerTime]);
-                    }
-                }
-            }
-            Debug.Log($"Making spectrum from {from} to {to} with {values.Count} values");
             int n = (int)Math.Pow(2, (int)Math.Log(values.Count, 2));
             Complex[] complexes = new Complex[n];
             for (int i = 0; i < n; i++)

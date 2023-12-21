@@ -145,26 +145,6 @@ namespace Research
             }
             CurrentValue = relativeValue;
         }
-        class CharComparer : IComparer<char>
-        {
-            public int Compare(char x, char y)
-            {
-                if (Char.IsLower(x) && !Char.IsLower(y))
-                    return -1;
-                if (!Char.IsLower(x) && Char.IsLower(y))
-                    return 1;
-
-                if (Char.IsLower(x) && Char.IsLower(y))
-                    return x.CompareTo(y);
-
-                if (!Char.IsLetterOrDigit(x))
-                    return 1;
-                if (!Char.IsLetterOrDigit(y))
-                    return -1;
-
-                return x.CompareTo(y);
-            }
-        }
 
         public void Setup(float maxInputValue)
         {
@@ -208,7 +188,7 @@ namespace Research
                 float pointPos = point.transform.position.x;
                 if (pointPos > fromPos && pointPos < toPos)
                 {
-                    //values.Add(history[point]);
+                    values.Add(history[point]);
                 }
             }
             return values.ToArray();
@@ -230,11 +210,11 @@ namespace Research
             Vector3 scale = Vector3.one * (_graphLength / (float)originalResolution);
 
             float maxValue = Mathf.Max(values);
-            //for (int i = 0; i < values.Length; i++) values[i] = values[i] / maxValue * _spectrumMaxValue;
-            for (int i = 0; i < values.Length; i++) values[i] = values[i] * _spectrumMaxValue;
+            for (int i = 0; i < values.Length; i++) values[i] = values[i] / maxValue * _spectrumMaxValue;
+            //for (int i = 0; i < values.Length; i++) values[i] = values[i] * _spectrumMaxValue;
 
             //float[] correctedRange = Interpolate(values, _resolution);
-            float[] correctedRange = null;
+            float[] correctedRange;
             if (_interpolateByFactor) correctedRange = Interpolate(values, (int)(values.Length * _interpolateFactor));
             else correctedRange = Interpolate(values, _resolution);
 

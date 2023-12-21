@@ -36,7 +36,7 @@ namespace Research
 
         private void OnTick()
         {
-            int signal = GetSignal(SignalType.Sinc);
+            int signal = GetSignal(SignalType.Hard);
             _graph.PushValue(signal);
             Output = signal;
         }

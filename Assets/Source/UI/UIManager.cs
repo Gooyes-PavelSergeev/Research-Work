@@ -27,24 +27,6 @@ namespace Research.UI {
         private Area _inputArea;
         private Area _outputArea;
 
-        /*private bool _isRunning
-        {
-            get => _dac.Active;
-
-            set
-            {
-                _chooseAreaButton.gameObject.SetActive(!value);
-                if (value)
-                {
-                    _dac.Continue();
-                }
-                else
-                {
-                    _dac.Stop();
-                }
-            }
-        }*/
-
         private void Start()
         {
             _dac = MainController.Instance.dac;
@@ -69,8 +51,9 @@ namespace Research.UI {
 
         private void OnStopButtonClick()
         {
-            //_isRunning = !_isRunning;
-            //_stopButtonText.text = _isRunning ? "Stop" : "Continue";
+            MainController.Instance.IsPaused = !MainController.Instance.IsPaused;
+            _chooseAreaButton.gameObject.SetActive(MainController.Instance.IsPaused);
+            _stopButtonText.text = MainController.Instance.IsPaused ? "Continue" : "Stop";
         }
 
         private void OnChooseAreaButtonClick()
@@ -151,7 +134,7 @@ namespace Research.UI {
                 if (time < from) from = time;
                 else if (time > to) to = time;
             }
-            System.Numerics.Complex[] spectrum = _dac.CreateSpectrum(from, to, !area.graph._isInput);
+            System.Numerics.Complex[] spectrum = _dac.CreateSpectrum(from, to);
             area.graph.DisplayRange(spectrum);
             area.firstIsSet = false;
             area.secondIsSet = false;

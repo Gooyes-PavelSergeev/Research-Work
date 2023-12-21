@@ -6,7 +6,6 @@ namespace Research
 {
     public static class FourierTransform
     {
-
         public static void DFT(Complex[] data)
         {
             int n = data.Length;
